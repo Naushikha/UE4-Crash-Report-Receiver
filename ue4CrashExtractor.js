@@ -22,6 +22,7 @@ exports.extractCrashReports = async () =>
       console.log(`(*) Working on file '${crashFile}'...`);
   
       var fileBuffer = fs.readFileSync(`${UPLOAD_DIR}/${crashFile}`);
+      console.log(fileBuffer);
       zlib.inflate(fileBuffer, (err, buf) => {
         // HEADER
         // https://stackoverflow.com/a/16202908
@@ -55,9 +56,9 @@ exports.extractCrashReports = async () =>
         fs.rename(`${UPLOAD_DIR}/${crashFileName}.ue4crash`, `${reportDir}/${DirectoryName}.ue4crash`, () => {});
         fs.rename(`${UPLOAD_DIR}/${crashFileName}.json`, `${reportDir}/${DirectoryName}.json`, () => {});
         // console.log(CurrentFileIndex, FileName, FileSize);
+        console.log(`(✔) File '${crashFile}' extracted.`);
       });
 
-      console.log(`(✔) File '${crashFile}' extracted.`);
     });
     console.log(`(✔) Extraction complete.`);
   });
