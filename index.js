@@ -4,9 +4,9 @@ const crypto = require("crypto");
 var serveIndex = require('serve-index');
 const { extractCrashReports } = require("./ue4CrashExtractor");
 
-const PORT = 8080;
-const UPLOAD_DIR = "./uploads"; // TODO: Add environment var for dir, port
-const REPORTS_DIR = "./reports";
+const PORT = process.env.PORT || 8080;
+const UPLOAD_DIR = process.env.UPLOAD_DIR || "./uploads"; // TODO: Add environment var for dir, port
+const REPORTS_DIR = process.env.REPORTS_DIR || "./reports";
 
 const app = express();
 app.use(express.json());
