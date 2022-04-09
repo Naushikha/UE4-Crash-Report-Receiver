@@ -21,34 +21,44 @@ app.get("/", (req, res) => {
 
 var immediateSched = false; // Makes sure immediate scheduling doesn't get repetitive for quick consecutive requests
 
-app.post("/upload", (req, res) => {
-  var uniqueDTID = getDateTimeString();
-  req
-    .pipe(fs.createWriteStream(`${UPLOAD_DIR}/${uniqueDTID}.ue4crash`))
-    .on("error", (err) => {
-      console.log(`(✖) Writing ${uniqueDTID}.ue4crash failed.`, "\n", err);
-      res.status(409).send("Report uploading failed."); // https://stackoverflow.com/a/7088468
-      return;
-    });
+app.post("/upload", async (req, res) => {
+  const buffers = [];
+  for await (const chunk of req) {
+    buffers.push(chunk);
+  }
+  const fileData = Buffer.concat(buffers);
+  const uniqueDTID = getDateTimeString();
   fs.writeFile(
-    `${UPLOAD_DIR}/${uniqueDTID}.json`,
-    JSON.stringify(req.query, null, "\t"),
-    (err) => {
+    `${UPLOAD_DIR}/${uniqueDTID}.ue4crash`,
+    fileData,
+    async (err) => {
       if (err) {
-        console.log(`(✖) Writing ${uniqueDTID}.json failed.`, "\n", err);
+        console.log(`(✖) Writing ${uniqueDTID}.ue4crash failed.`, "\n", err);
         res.status(409).send("Report uploading failed."); // https://stackoverflow.com/a/7088468
-      } else {
-        console.log("(✔) Received a crash file.");
-        res.status(201).send("Report uploaded.");
-
-        if (!immediateSched) {
-          setTimeout(() => {
-            extractCrashReports(); // Schedule extraction
-            immediateSched = false;
-          }, 3000);
-          immediateSched = true;
-        }
+        return;
       }
+
+      fs.writeFile(
+        `${UPLOAD_DIR}/${uniqueDTID}.json`,
+        JSON.stringify(req.query, null, "\t"),
+        async (err) => {
+          if (err) {
+            console.log(`(✖) Writing ${uniqueDTID}.json failed.`, "\n", err);
+            res.status(409).send("Report uploading failed."); // https://stackoverflow.com/a/7088468
+          } else {
+            console.log("(✔) Received a crash file.");
+            res.status(201).send("Report uploaded.");
+
+            if (!immediateSched) {
+              setTimeout(() => {
+                extractCrashReports(); // Schedule extraction
+                immediateSched = false;
+              }, 3000);
+              immediateSched = true;
+            }
+          }
+        }
+      );
     }
   );
 });
