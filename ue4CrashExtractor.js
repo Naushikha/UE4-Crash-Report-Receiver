@@ -24,7 +24,7 @@ exports.extractCrashReports = async () => {
       fs.mkdir(reportDir, async (err) => {
         if (err) {
           console.log(`(✖) MKDIR for '${crashFileName}' failed.`, "\n", err);
-          return;
+          if (err.code != "EEXIST") return; // Pass through if directory exists (Means, previous extraction failed)
         }
 
         fs.readFile(`${UPLOAD_DIR}/${crashFile}`, async (err, buf) => {
